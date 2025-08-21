@@ -1,10 +1,11 @@
 import cors from "cors";
 import express, { json, Request, Response, urlencoded } from "express";
 import helmet from "helmet";
+import "reflect-metadata";
+import { container } from "tsyringe";
 import { appConfig } from "./config";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { AuthRouter } from "./modules/auth/auth.router";
-import { container } from "tsyringe";
 
 export default class App {
   public app;
