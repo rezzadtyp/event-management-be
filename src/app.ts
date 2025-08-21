@@ -1,13 +1,10 @@
-import express, {
-  json,
-  NextFunction,
-  Request,
-  Response,
-  urlencoded,
-} from "express";
 import cors from "cors";
+import express, { json, Request, Response, urlencoded } from "express";
 import helmet from "helmet";
 import { appConfig } from "./config";
+import { errorMiddleware } from "./middlewares/error.middleware";
+import { AuthRouter } from "./modules/auth/auth.router";
+import { container } from "tsyringe";
 
 export default class App {
   public app;
@@ -27,17 +24,15 @@ export default class App {
   }
 
   private routes(): void {
-    this.app.get("/health", (req: Request, res: Response) => {
+    const authRouter = container.resolve(AuthRouter);
+    this.app.get("/health", (_req: Request, res: Response) => {
       res.send({ message: "OK" });
     });
+    this.app.use("/api/auth", authRouter.getRouter());
   }
 
   private errorHandler(): void {
-    this.app.use(
-      (err: Error, _req: Request, res: Response, _next: NextFunction) => {
-        res.status(400).send({ message: err.message });
-      }
-    );
+    this.app.use(errorMiddleware);
   }
 
   public start(): void {
