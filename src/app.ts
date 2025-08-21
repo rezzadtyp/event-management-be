@@ -7,20 +7,42 @@ import express, {
 } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { appConfig } from "./config";
 
-const app = express();
+export default class App {
+  public app;
 
-app.use(cors());
-app.use(json());
-app.use(helmet());
-app.use(urlencoded({ extended: true }));
+  constructor() {
+    this.app = express();
+    this.configure();
+    this.routes();
+    this.errorHandler();
+  }
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
+  private configure(): void {
+    this.app.use(cors());
+    this.app.use(json());
+    this.app.use(urlencoded({ extended: true }));
+    this.app.use(helmet());
+  }
 
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  res.status(400).send({ message: err.message });
-});
+  private routes(): void {
+    this.app.get("/health", (req: Request, res: Response) => {
+      res.send({ message: "OK" });
+    });
+  }
 
-export default app;
+  private errorHandler(): void {
+    this.app.use(
+      (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+        res.status(400).send({ message: err.message });
+      }
+    );
+  }
+
+  public start(): void {
+    this.app.listen(appConfig.port, () => {
+      console.log(`Server is running on port ${appConfig.port}`);
+    });
+  }
+}
