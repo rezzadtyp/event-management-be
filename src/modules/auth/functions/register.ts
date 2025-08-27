@@ -42,10 +42,6 @@ export const registerFunction = async (body: RegisterDTO) => {
       }
     }
 
-    // Set point expiration to 3 months from now (even though initial points are 0)
-    const pointExpiration = new Date();
-    pointExpiration.setMonth(pointExpiration.getMonth() + 3);
-
     const newUser = await prisma.user.create({
       data: {
         name: body.name,
@@ -53,7 +49,7 @@ export const registerFunction = async (body: RegisterDTO) => {
         password: hashedPassword,
         role: body.role || "CUSTOMER",
         referralCode,
-        pointExpiredAt: pointExpiration,
+        pointExpiredAt: new Date(Date.now()),
       },
     });
 
