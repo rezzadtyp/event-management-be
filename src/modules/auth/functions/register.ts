@@ -90,17 +90,14 @@ export const registerFunction = async (body: RegisterDTO) => {
           },
         });
 
-        // Give points to referrer (3 months expiration from now)
-        const referrerPointExpiration = new Date();
-        referrerPointExpiration.setMonth(
-          referrerPointExpiration.getMonth() + 3
-        );
-
         await tx.user.update({
           where: { id: referralUser.id },
           data: {
             point: { increment: 10000 }, // Add 10,000 points
-            pointExpiredAt: referrerPointExpiration, // Set new expiration
+            pointExpiredAt: new Date(
+              referralUser.pointExpiredAt.getTime() +
+                3 * 30 * 24 * 60 * 60 * 1000
+            ), // Set new expiration
           },
         });
       });
