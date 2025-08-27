@@ -1,14 +1,22 @@
 import { injectable } from "tsyringe";
 import { RegisterDTO } from "./dto/register.dto";
-import { register } from "./functions/register";
+import { registerFunction } from "./functions/register";
+import { LoginDTO } from "./dto/login.dto";
+import { loginFunction } from "./functions/login";
 
 @injectable()
 export class AuthService {
   constructor() {}
 
   register = async (body: RegisterDTO) => {
-    const user = await register(body);
+    const result = await registerFunction(body);
 
-    return user;
+    return result;
+  };
+
+  login = async (body: LoginDTO) => {
+    const result = await loginFunction(body);
+
+    return result;
   };
 }

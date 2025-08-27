@@ -16,15 +16,23 @@ datasource db {
 }
 
 model User {
-  id         String        @id @default(uuid())
-  name       String
-  email      String        @unique
-  password   String
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  deletedAt  DateTime?
-  role       Role          @default(CUSTOMER)
-  referral   UserReferral?
+  id             String        @id @default(uuid())
+  name           String
+  email          String        @unique
+  password       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  role           Role          @default(CUSTOMER)
+  referralCode   String?       @unique
+  point          Int           @default(0)
+  pointExpiredAt DateTime
+  events         Event[]
+  UserCoupon     UserCoupon[]
+  Coupon         Coupon[]
+  UserVoucher    UserVoucher[]
+  Voucher        Voucher[]
+  Transaction    Transaction[]
 
   @@map("users")
 }
@@ -34,14 +42,126 @@ enum Role {
   ORGANIZER
 }
 
-model UserReferral {
-  id           String    @id @default(uuid())
-  referralCode String    @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+model Event {
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  thumbnailUrl String
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   deletedAt    DateTime?
-  userId       String    @unique
-  user         User      @relation(fields: [userId], references: [id])
+  eventTicket  EventTicket[]
+  organizerId  String
+  organizer    User          @relation(fields: [organizerId], references: [id])
+  isAvailable  Boolean       @default(true)
+  Voucher      Voucher[]
+  Transaction  Transaction[]
 
-  @@map("user_referrals")
+  @@map("events")
+}
+
+model EventTicket {
+  id        String    @id @default(uuid())
+  eventId   String
+  event     Event     @relation(fields: [eventId], references: [id])
+  name      String
+  price     Int
+  stock     Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("event_tickets")
+}
+
+model UserCoupon {
+  id       String  @id @default(uuid())
+  userId   String
+  couponId String
+  isUse    Boolean
+
+  user        User          @relation(fields: [userId], references: [id])
+  coupon      Coupon        @relation(fields: [couponId], references: [id])
+  Transaction Transaction[]
+
+  @@map("userCoupons")
+}
+
+// system generated coupon
+model Coupon {
+  id             String       @id @default(uuid())
+  code           String
+  expirationDate DateTime
+  discountAmount Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  UserCoupon     UserCoupon[]
+
+  @@map("coupons")
+}
+
+model UserVoucher {
+  id        String  @id @default(uuid())
+  userId    String
+  voucherId String
+  isUse     Boolean
+
+  user        User          @relation(fields: [userId], references: [id])
+  voucher     Voucher       @relation(fields: [voucherId], references: [id])
+  Transaction Transaction[]
+
+  @@map("userVouchers")
+}
+
+model Voucher {
+  id             String   @id @default(uuid())
+  code           String
+  discountAmount Int
+  limit          Int
+  expirationDate DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  userId         String
+  eventId        String
+
+  user        User          @relation(fields: [userId], references: [id])
+  event       Event         @relation(fields: [eventId], references: [id])
+  UserVoucher UserVoucher[]
+
+  @@map("vouchers")
+}
+
+model Transaction {
+  id            String            @id @default(uuid())
+  invoice       String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  status        TransactionStatus @default(PENDING)
+  total         Int
+  userId        String
+  eventId       String
+  paymentProof  String            @default("")
+  userCouponId  String?
+  userVoucherId String?
+  qty           Int
+  isPointUse    Boolean
+  isUseCoupon   Boolean
+  isUseVoucher  Boolean
+
+  userCoupon  UserCoupon?  @relation(fields: [userCouponId], references: [id])
+  event       Event        @relation(fields: [eventId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  userVoucher UserVoucher? @relation(fields: [userVoucherId], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }

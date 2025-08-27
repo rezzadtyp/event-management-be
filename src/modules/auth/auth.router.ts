@@ -3,6 +3,7 @@ import { autoInjectable } from "tsyringe";
 import { AuthController } from "./auth.controller";
 import { RegisterDTO } from "./dto/register.dto";
 import { validateBody } from "../../middlewares/validation.middleware";
+import { LoginDTO } from "./dto/login.dto";
 
 @autoInjectable()
 export class AuthRouter {
@@ -17,6 +18,11 @@ export class AuthRouter {
       "/register",
       validateBody(RegisterDTO),
       this.authController.register
+    );
+    this.router.post(
+      "/login",
+      validateBody(LoginDTO),
+      this.authController.login
     );
   }
 
